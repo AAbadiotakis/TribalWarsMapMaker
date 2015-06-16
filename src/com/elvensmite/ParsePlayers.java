@@ -11,11 +11,6 @@ import java.io.*;
 import javax.net.ssl.HttpsURLConnection;
 
 public class ParsePlayers {
-		
-	
-	
-
-	
 	int world;
 	
 	public ParsePlayers(int input) {
@@ -107,7 +102,7 @@ public class ParsePlayers {
 		}
 		
 		
-		System.out.println(output);
+//		System.out.println(output);
 		return output;
 	}
 		

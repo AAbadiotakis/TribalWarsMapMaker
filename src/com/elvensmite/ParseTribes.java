@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import javax.net.ssl.HttpsURLConnection;
 
@@ -15,7 +17,7 @@ public class ParseTribes {
 
 	public ParseTribes(int input) {
 		world = input;
-		String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking&mode=ally";
+/*		String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking&mode=ally";
 		URL url;
 		try {
 			url = new URL(https_url);
@@ -26,7 +28,52 @@ public class ParseTribes {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
+*/	}
+	
+	public Map<String,String> grabTribeData() {
+		Map<String,String> output = new LinkedHashMap<String,String>();
+		
+		String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking&mode=ally";
+		URL url;
+		HttpsURLConnection con = null;
+		try {
+			url = new URL(https_url);
+			con = (HttpsURLConnection)url.openConnection();
+		} catch (MalformedURLException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			
+		}
+		
+		if(con != null) {
+			try {
+				BufferedReader br = 
+						new BufferedReader(
+							new InputStreamReader(con.getInputStream()));
+				String input;
+				String id = null;
+				boolean foundId = false;;
+				while((input = br.readLine()) != null) {
+					if(input.matches("\\s*<a href=\"/guest\\.php\\?screen=info_ally&amp;id=[0-9]*\">")) {
+						id = (input.split("id=")[1]).split("\">")[0];
+						foundId = true;
+					}else if(foundId) {
+						if(input.contains("<") || input.contains(">")) {
+							
+						}else {
+							foundId = false;
+							output.put(input.trim(), id);
+						}
+					}
+				}
+				
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		System.out.println(output);
+		return output;	
+		}
 	
 	private void createList(HttpsURLConnection con) {
 		if(con!=null){
@@ -90,7 +137,8 @@ public class ParseTribes {
 	}
 	
 	public static void main(String[] args) {
-		new ParseTribes(80);
+		ParseTribes pt = new ParseTribes(78);
+		pt.grabTribeData();
 	}
 	
 }
