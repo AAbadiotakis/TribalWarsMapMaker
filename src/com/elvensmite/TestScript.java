@@ -12,10 +12,10 @@ import java.io.*;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class ParsePlayers {
+public class TestScript {
 	int world;
 	
-	public ParsePlayers(int input) {
+	public TestScript(int input) {
 		world = input;
 	}
 	
@@ -88,43 +88,13 @@ public class ParsePlayers {
 								new InputStreamReader(con.getInputStream()));
 					String input;
 					while((input = br.readLine()) != null) {
-						l.addAll(getAllMatches(input,"[0-9]{3}\\|[0-9]{3}"));
+						getAllMatches(input,"[0-9]{3}\\|[0-9]{3}");
 					}
 					output.put(key, l);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}	
-			}
-			
-			String https_url2 = "https://en"+world+".tribalwars.net/guest.php?screen=info_player&id="+id;
-			URL url2;
-			HttpsURLConnection con2 = null;
-			try {
-				url2 = new URL(https_url2);
-				con2 = (HttpsURLConnection)url2.openConnection();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			if(con2 != null) {
-				try {
-					BufferedReader br = 
-							new BufferedReader(
-								new InputStreamReader(con2.getInputStream()));
-					String input;
-					while((input = br.readLine()) != null) {
-						if(input.matches("\\s*<td>[0-9]{3}\\|[0-9]{3}</td>")) {
-							l.add((input.split("<td>")[1]).split("</td>")[0]);
-						}
-					}
-					output.put(key, l);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			
+			}	
 		}		
 		return output;
 	}
@@ -133,8 +103,18 @@ public class ParsePlayers {
 		List<String> matches = new ArrayList<String>();
 		Matcher m = Pattern.compile("(?=(" + regex + "))").matcher(text);
 		while(m.find()) {
+			System.out.println(m.group(1));
 			matches.add(m.group(1));
 		}
+		System.out.println(matches);
 		return matches;
 	}
+	
+	public static void main(String args[]) {
+		TestScript ts = new TestScript(78);
+		Map ts1 = ts.grabPlayerData();
+		Map ts2 = ts.grabPlayerVillageCoords(ts1);
+		
+	}
 }
+

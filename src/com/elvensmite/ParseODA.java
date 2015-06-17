@@ -12,17 +12,16 @@ import java.io.*;
 
 import javax.net.ssl.HttpsURLConnection;
 
-public class ParsePlayers {
+public class ParseODA {
 	int world;
 	
-	public ParsePlayers(int input) {
+	public ParseODA(int input) {
 		world = input;
 	}
 	
-	public Map<String,String> grabPlayerData() {
+	public Map<String,String> grabODAData() {
 		Map<String,String> output = new LinkedHashMap<String,String>();
-		
-		String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking";
+		String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking&mode=kill_player&type=att";
 		URL url;
 		HttpsURLConnection con = null;
 		try {
