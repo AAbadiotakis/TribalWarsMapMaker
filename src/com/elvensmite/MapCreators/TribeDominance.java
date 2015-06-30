@@ -1,23 +1,254 @@
-package com.elvensmite;
+package com.elvensmite.MapCreators;
 
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics2D;
+import java.awt.Image;
+import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.io.*;
 
+import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
 
-public class ParseContinentTribes {
+import com.elvensmite.Download;
+import com.elvensmite.StartScript;
+
+public class TribeDominance {
 	int world;
+	int[] ColorMap;
 	
-	public ParseContinentTribes(int input) {
+	public TribeDominance(int input) {
 		world = input;
+		ColorMap = StartScript.ColorMap;
 	}
+	
+	public void createMap() {
+		Map<String, List<String>> continentTribeData = grabContinentTribeData();
+		System.out.println("continentTribeData");
+		System.out.println(continentTribeData);
+		Map<String, String> TopFifteen = getTopFifteenTribeDom(continentTribeData);
+		System.out.println("TopFifteen");
+		System.out.println(TopFifteen);
+//		Map<String, List<String>> tribeVillageData = grabTribePlayers(TopFifteen);
+		
+		int lowestX = 1000;
+		int lowestY = 1000;
+		int highestX = 0;
+		int highestY = 0;
+		
+		for(String key: continentTribeData.keySet()) {
+			List<String> list = continentTribeData.get(key);
+			String tribeId = list.get(0);
+			List<String> villageCoords = getTribeVillages(tribeId);
+			System.out.println(villageCoords);
+			for(String villageCoord: villageCoords) {
+				int xCoord = Integer.parseInt((villageCoord.split("\\|")[0]));
+				int yCoord = Integer.parseInt((villageCoord.split("\\|")[1]));
+				int xTmp = xCoord;
+				int yTmp = yCoord;
+				while(xTmp > 9)
+					xTmp = xTmp/10;
+				while(yTmp > 9)
+					yTmp = yTmp/10;
+				if(lowestX > xTmp)
+					lowestX = xTmp;
+				if(lowestY > yTmp)
+					lowestY = yTmp;
+				if(highestX < xTmp)
+					highestX = xTmp;
+				if(highestY < yTmp)
+					highestY = yTmp;
+			}
+		}
+		
+		lowestX = lowestX*100;
+		lowestY = lowestY*100;
+		System.out.println("lowestX: "+lowestX);
+		System.out.println("lowestY: "+lowestY);
+		
+		highestX = (highestX*100) + 100;
+		highestY = (highestY*100) + 100;
+		System.out.println("highestX: "+highestX);
+		System.out.println("highestY: "+highestY);
+		
+		int width = highestX - lowestX;
+		int height = highestY - lowestY;
+		
+		BufferedImage img = new BufferedImage(width,height, BufferedImage.TYPE_INT_RGB);
+		Graphics2D graphics = img.createGraphics();
+		graphics.setPaint(new Color(72,71,82));
+		graphics.fillRect(0, 0, img.getWidth(), img.getHeight());
+		int ranking = 0;
+		int drawY = 50;
+		
+		for(String key: TopFifteen.keySet()) {
+			if(ranking < ColorMap.length) {
+				List<String> l = getTribeVillages(TopFifteen.get(key));
+				for(String str: l) {
+					int xCoord = Integer.parseInt((str.split("\\|")[0]));
+					int yCoord = Integer.parseInt((str.split("\\|")[1]));
+					xCoord -= lowestX;
+					yCoord -= lowestY;
+					graphics.setColor(new Color(ColorMap[ranking]));
+					graphics.fillRect(xCoord-2, yCoord-2, 4, 4);
+					graphics.setColor(Color.BLACK);
+					graphics.drawRect(xCoord-3, yCoord-3, 5, 5);
+				}
+				ranking++;
+			}
+		}
+		
+		//Print Continent numbers
+		for(int x=0;x<width;x++) {
+			for(int y=0;y<height;y++) {
+				if(x%100 == 0)
+					img.setRGB(x, y, Color.BLACK.getRGB());
+				if(y%100 == 0)
+					img.setRGB(x, y, Color.BLACK.getRGB());
+				if(x%100 == 0 && y%100 == 0 && x != highestX && y != highestY) {
+					graphics.setFont(new Font("Dialog", Font.BOLD, 20));
+					FontMetrics fm = graphics.getFontMetrics();
+					graphics.setPaint(new Color(255,255,255));
+					graphics.drawString(""+(y+lowestY)/100+(x+lowestX)/100, x, y+fm.getHeight());
+				}
+			}
+		}
+		
+		//Print tribe name per K
+		//Print % Tribe Owned/total K
+		for(String key: continentTribeData.keySet()) {
+			String x = ""+key.charAt(1);
+			String y = ""+key.charAt(0);
+			
+			int xCoord = Integer.parseInt(x);
+			int yCoord = Integer.parseInt(y);
+			
+			xCoord = xCoord*100;
+			yCoord = yCoord*100;
+			
+			xCoord -= lowestX;
+			yCoord -= lowestY;
+			
+			if(continentTribeData.containsKey(key)) {
+				List<String> l = continentTribeData.get(key);
+				String tribe = l.get(1);
+				String f = l.get(2);
+				float f1 = Float.parseFloat(f);
+				f1 = f1*100;
+				f = String.format("%.2f", f1);
+				f += "%";
+				int fontSize = 12;
+				graphics.setFont(new Font("Dialog",Font.BOLD, fontSize));
+				FontMetrics fm = graphics.getFontMetrics();
+				if(fm.stringWidth(tribe) > 200) {
+					boolean stay = true;
+					while(stay) {
+						fontSize--;
+						graphics.setFont(new Font("Dialog",Font.BOLD,fontSize));
+						fm = graphics.getFontMetrics();
+						if(fm.stringWidth(tribe) < 200)
+							stay = false;
+					}
+				}
+				graphics.setFont(new Font("Dialog",Font.BOLD,fontSize));
+				graphics.setPaint(new Color(0,0,0));
+				fm = graphics.getFontMetrics();
+				int moveX = fm.stringWidth(tribe);
+				graphics.drawString(tribe, xCoord+((100-moveX)/2), yCoord+50);
+				graphics.setFont(new Font("Dialog",Font.BOLD,12));
+				moveX = fm.stringWidth(f);
+				graphics.drawString(f,xCoord+((100-moveX)/2),yCoord+75);	
+			}
+		}
+		
+		ranking = 0;
+		graphics.dispose();
+		BufferedImage fullImage = new BufferedImage(width+200,height+30,BufferedImage.TYPE_INT_RGB);
+		Graphics2D g = fullImage.createGraphics();
+		g.drawImage(img, 0, 30, width, height+30, 0, 0, img.getWidth(), img.getHeight(), null);
+		String header = "Tribe Dominance";
+		g.setFont(new Font("TimesRoman",Font.BOLD,21));
+		FontMetrics fm = g.getFontMetrics();
+		g.drawString(header, (width/2)-((fm.stringWidth(header))/2), fm.getHeight());
+		g.setFont(new Font("Dialog", Font.BOLD, 14));
+		fm = graphics.getFontMetrics();
+		drawY = fm.getHeight();
+		int fontSize = 20;
+		boolean isTrue = true;
+		while(isTrue) {
+			g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+			fm = g.getFontMetrics();
+			if(height - 15*fm.getHeight() > 20) {
+				isTrue = false;
+			}else {
+				fontSize--;
+			}
+		}
+		int resetFont = fontSize;
+		//Print Tribe key
+		for(String key: TopFifteen.keySet()) {
+			if(ranking < ColorMap.length) {
+				fontSize = resetFont;
+				g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+				fm = g.getFontMetrics();
+				if(fm.stringWidth(key) > 200) {
+					boolean stay = true;
+					while(stay) {
+						fontSize--;
+						g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+						fm = g.getFontMetrics();
+						if(fm.stringWidth(key) <= 200)
+							stay = false;
+					}
+				}
+				g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+				g.setPaint(new Color(ColorMap[ranking]));
+				g.drawString(key, width, 15+drawY);
+				drawY+= fm.getHeight();
+				ranking++;
+			}
+		}
+		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM/yyyy 'EST'");
+		String d = sdf.format(new Date());
+		g.setFont(new Font("TimesRoman",Font.BOLD,10));
+		g.setColor(Color.WHITE);
+		fm = g.getFontMetrics();
+		g.drawString(d,width,(height+30)-fm.getHeight());
+		g.dispose();
+		Image scaledImage = fullImage.getScaledInstance(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), Image.SCALE_SMOOTH);		
+		BufferedImage buffered = new BufferedImage(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), BufferedImage.TYPE_INT_RGB);
+		Graphics2D bimg = buffered.createGraphics();
+		bimg.drawImage(scaledImage, 0, 0, null);
+		g.dispose();
+		
+		File f = new File("w"+world+File.separator+"TribeDominance.jpg");
+		try {
+			ImageIO.write(buffered, "JPEG", f);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+	}
+	
+	
+	
+	
 	
 	public Map<String,List<String>> grabContinentTribeData() {
 		Map<String,List<String>> output = new LinkedHashMap<String,List<String>>();
@@ -120,23 +351,29 @@ public class ParseContinentTribes {
 	public Map<String,String> getTopFifteenTribeDom(Map<String,List<String>> m) {
 		Map<String,String> output = new LinkedHashMap<String,String>();
 		List<Float> topFifteen = new ArrayList<Float>();
+		List<String> topFifteenTribes = new ArrayList<String>();
+		for(String key: m.keySet()) {
+			List<String> l = m.get(key);
+			Float currentVal = Float.parseFloat(l.get(2));
+			topFifteen.add(currentVal);
+		}
+		Collections.sort(topFifteen, new Comparator<Float> () {
+			@Override
+			public int compare(Float arg0, Float arg1) {
+				int result = Float.compare(arg1,arg0);
+				return result;
+			}
+		});
 		for(int i=0;i<15;i++) {
-			Float highestVal = (float) 0.00;
 			for(String key: m.keySet()) {
 				List<String> l = m.get(key);
 				Float currentVal = Float.parseFloat(l.get(2));
-				if(currentVal > highestVal && !topFifteen.contains(currentVal)) {
-					highestVal = currentVal;
-				}
-			}
-			topFifteen.add(highestVal);
-		}
-		
-		for(String key: m.keySet()) {
-			List<String> l = m.get(key);
-			for(Float i: topFifteen) {
-				if(l.contains(Float.toString(i))) {
-					output.put(l.get(1), l.get(0));
+				String currentTribe = l.get(1);
+				if(currentVal.equals(topFifteen.get(i))) {
+					if(!topFifteenTribes.contains(currentTribe)) {
+						topFifteenTribes.add(currentTribe);
+						output.put(currentTribe, l.get(0));
+					}
 				}
 			}
 		}
@@ -243,7 +480,6 @@ public class ParseContinentTribes {
 							new BufferedReader(
 								new InputStreamReader(con.getInputStream()));
 					String input;
-					String id = null;
 					boolean foundId = false;
 					boolean findVillageCount = false;
 					boolean findVillageCount1 = false;
@@ -288,7 +524,9 @@ public class ParseContinentTribes {
 		}
 		return totalVillages;
 	}	
+	
 	public Map<String,List<String>> grabTribePlayers(Map<String,String> m) {
+
 		Map<String,List<String>> output = new LinkedHashMap<String,List<String>>();
 		for (String key : m.keySet()) {
 			String id = m.get(key);
@@ -384,13 +622,49 @@ public class ParseContinentTribes {
 		return output;
 	}
 	
-	
-	public static void main(String args[]) {
-		ParseContinentTribes pct = new ParseContinentTribes(78);
-		Map<String, List<String>> pct1 = pct.grabContinentTribeData();
-		Map<String, String> pct2 = pct.getTopFifteenTribeDom(pct1);
-		System.out.println(pct.grabTribePlayers(pct2));
-//		System.out.println(pcp.getTopFifteenTribeDom(pcp1));
-//		System.out.println(""+pcp.getTotalVillagesInContinent(44));
+	public static List<String> getTribeVillages(String tribeId) {
+		List<String> playerId = new ArrayList<String>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("player.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				if(tribeId.equals(input.split(",")[2])) {
+					playerId.add(input.split(",")[0]);
+				}
+			}
+			br.close();
+		} catch(MalformedURLException e) {
+			e.printStackTrace();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		List<String> output = new ArrayList<String>();
+		
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("village.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				if(playerId.contains(input.split(",")[4])) {
+					output.add(input.split(",")[2]+"|"+input.split(",")[3]);
+				}
+			}
+			br.close();
+		}  catch(MalformedURLException e) {
+			e.printStackTrace();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		return output;
 	}
+	
+	public static void main(String[] args) {
+		new Download(78);
+		TribeDominance td = new TribeDominance(78);
+//		Map<String, List<String>> td1 = td.grabContinentTribeData();
+//		System.out.println(td.getTopFifteenTribeDom(td1));
+//		System.out.println(td.grabContinentTribeData());
+		td.createMap();
+
+	}
+
 }
