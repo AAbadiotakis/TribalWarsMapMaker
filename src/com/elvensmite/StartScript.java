@@ -2,7 +2,10 @@ package com.elvensmite;
 
 import java.awt.Color;
 
+import com.elvensmite.MapCreators.FastestNoblers;
 import com.elvensmite.MapCreators.PlayerDominance;
+import com.elvensmite.MapCreators.TopAvgTribes;
+import com.elvensmite.MapCreators.TopNobling;
 import com.elvensmite.MapCreators.TopODAPlayers;
 import com.elvensmite.MapCreators.TopODTPlayers;
 import com.elvensmite.MapCreators.TopPlayers;
@@ -15,35 +18,48 @@ public class StartScript {
 	public static int world = 78;
 	public static String https_url = "https://en"+world+".tribalwars.net";
 	
-	
-	public static void main(String[] args) {
-		int world;
-		if(args.length == 0) {
-			world = 79;
-		}else{
-			world = Integer.parseInt(args[0]);
-		}
+	public StartScript(int world) {
 		new Download(world);
-		System.out.println(world);
-		TopPlayers tp = new TopPlayers(world);
-		tp.createMap();
-		System.out.println("Top Players complete");
-		TopTribes tt = new TopTribes(world);
-		tt.createMap();
-		System.out.println("Top Tribes complete");
-		TopODAPlayers odap = new TopODAPlayers(world);
-		odap.createMap();
-		System.out.println("Top ODA Players complete");
-		TopODTPlayers odtp = new TopODTPlayers(world);
-		odtp.createMap();
-		System.out.println("Top ODT Players complete");
+		
+		FastestNoblers fn = new FastestNoblers(world);
+		fn.createMap();
 		
 		PlayerDominance pd = new PlayerDominance(world);
 		pd.createMap();
-		System.out.println("Player Dominance complete");
+		
+		TopAvgTribes tat = new TopAvgTribes(world);
+		tat.createMap();
+		
+		TopNobling tn = new TopNobling(world);
+		tn.createMap();
+		
+		TopODAPlayers odap = new TopODAPlayers(world);
+		odap.createMap();
+		
+		TopODTPlayers odtp = new TopODTPlayers(world);
+		odtp.createMap();
+		
+		TopPlayers tp = new TopPlayers(world);
+		tp.createMap();
+		
+		TopTribes tt = new TopTribes(world);
+		tt.createMap();
 		
 		TribeDominance td = new TribeDominance(world);
 		td.createMap();
+
+	}
+	
+	
+	public static void main(String[] args) {
+		new StartScript(78);
+		new FtpFileUpload(78);
+		new StartScript(79);
+		new FtpFileUpload(79);
+		new StartScript(80);
+		new FtpFileUpload(80);
+		new StartScript(81);
+		new FtpFileUpload(81);
 		
 	}
 }

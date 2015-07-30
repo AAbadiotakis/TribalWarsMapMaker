@@ -8,57 +8,69 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
 import com.elvensmite.Download;
 import com.elvensmite.StartScript;
 
-public class TopTribes {
+public class TopAvgTribes {
 	static int world;
 	static int[] ColorMap;
 	
-	public TopTribes(int input) {
+	public TopAvgTribes(int input) {
 		world = input;
 		ColorMap = StartScript.ColorMap;
 	}
 	
 	public void createMap() {
-		Map<String,String> idAndTribe = getTopFifteen();
+		Map<String,Double> avgPointsPerTribe = getTopAvgPointTribes();
+		
 		int lowestX = 1000;
 		int lowestY = 1000;
 		int highestX = 0;
 		int highestY = 0;
-		for(String key: idAndTribe.keySet()) {
-			List<String> villageCoords = getTribeVillages(key);
-			for(String villageCoord: villageCoords) {
-				int xCoord = Integer.parseInt(villageCoord.split("\\|")[0]);
-				int yCoord = Integer.parseInt(villageCoord.split("\\|")[1]);
-				int xTmp = xCoord;
-				int yTmp = yCoord;
-				while(xTmp > 9)
-					xTmp = xTmp/10;
-				while(yTmp > 9)
-					yTmp = yTmp/10;
-				if(lowestX > xTmp)
-					lowestX = xTmp;
-				if(lowestY > yTmp)
-					lowestY = yTmp;
-				if(highestX < xTmp)
-					highestX = xTmp;
-				if(highestY < yTmp)
-					highestY = yTmp;
+		int ranking = 0;
+		
+		for(String key: avgPointsPerTribe.keySet()) {
+			if(ranking < ColorMap.length) {
+				List<String> villageCoords = getTribeVillages(key);
+				for(String villageCoord: villageCoords) {
+					int xCoord = Integer.parseInt(villageCoord.split("\\|")[0]);
+					int yCoord = Integer.parseInt(villageCoord.split("\\|")[1]);
+					int xTmp = xCoord;
+					int yTmp = yCoord;
+					while(xTmp > 9)
+						xTmp = xTmp/10;
+					while(yTmp > 9)
+						yTmp = yTmp/10;
+					if(lowestX > xTmp)
+						lowestX = xTmp;
+					if(lowestY > yTmp)
+						lowestY = yTmp;
+					if(highestX < xTmp)
+						highestX = xTmp;
+					if(highestY < yTmp)
+						highestY = yTmp;
+				}				
+				ranking++;
 			}
 		}
+		
 		lowestX = lowestX * 100;
 		lowestY = lowestY * 100;
 		highestX = (highestX * 100)+100;
@@ -69,21 +81,24 @@ public class TopTribes {
 		Graphics2D graphics = img.createGraphics();
 		graphics.setPaint(new Color(72,71,82));
 		graphics.fillRect(0, 0, img.getWidth(), img.getHeight());
-		int ranking = 0;
-		for(String key: idAndTribe.keySet()) {
-			List<String> villageCoords = getTribeVillages(key);
-			for(String villageCoord : villageCoords) {
-				int xCoord = Integer.parseInt(villageCoord.split("\\|")[0]);
-				int yCoord = Integer.parseInt(villageCoord.split("\\|")[1]);
-				xCoord -= lowestX;
-				yCoord -= lowestY;
-				graphics.setColor(new Color(ColorMap[ranking]));
-				graphics.fillRect(xCoord, yCoord, 4, 4);
-				graphics.setColor(Color.BLACK);
-				graphics.drawRect(xCoord-1,yCoord-1,5,5);			
+		ranking = 0;
+		for(String key: avgPointsPerTribe.keySet()) {
+			if(ranking < ColorMap.length) {
+				List<String> villageCoords = getTribeVillages(key);
+				for(String villageCoord : villageCoords) {
+					int xCoord = Integer.parseInt(villageCoord.split("\\|")[0]);
+					int yCoord = Integer.parseInt(villageCoord.split("\\|")[1]);
+					xCoord -= lowestX;
+					yCoord -= lowestY;
+					graphics.setColor(new Color(ColorMap[ranking]));
+					graphics.fillRect(xCoord, yCoord, 4, 4);
+					graphics.setColor(Color.BLACK);
+					graphics.drawRect(xCoord-1,yCoord-1,5,5);	
+				}
+				ranking++;
 			}
-			ranking++;
 		}
+		
 		
 		for(int x=0;x<width;x++) {
 			for(int y=0;y<height;y++) {
@@ -99,11 +114,12 @@ public class TopTribes {
 		}
 		
 		ranking = 0;
+		
 		graphics.dispose();
 		BufferedImage fullImage = new BufferedImage(width+200,height+30,BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = fullImage.createGraphics();
 		g.drawImage(img, 0, 30, width, height+30, 0, 0, img.getWidth(), img.getHeight(), null);
-		String header = "Top Tribes";
+		String header = "Top Avg. Points per Player Tribe";
 		g.setFont(new Font("TimesRoman", Font.BOLD, 21));
 		FontMetrics fm = g.getFontMetrics();
 		g.drawString(header, (width/2) - ((fm.stringWidth(header))/2), fm.getHeight());
@@ -112,34 +128,35 @@ public class TopTribes {
 		int fontSize = 20;
 		boolean isTrue = true;
 		while(isTrue) {
-			g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+			g.setFont(new Font("TimesRoman", Font.BOLD, fontSize));
 			fm = g.getFontMetrics();
 			if(height - 15*fm.getHeight() > 20) {
 				isTrue = false;
-			}else {
+			} else {
 				fontSize--;
 			}
 		}
 		int resetFont = fontSize;
 		int drawY = fm.getHeight();
-		for(String key: idAndTribe.keySet()) {
+		for(String key: avgPointsPerTribe.keySet()) {
 			if(ranking < ColorMap.length) {
 				fontSize = resetFont;
-				g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+				g.setFont(new Font("TimesRoman", Font.BOLD, fontSize));
 				fm = g.getFontMetrics();
-				if(fm.stringWidth(idAndTribe.get(key)) > 200) {
+				String tribeName = getTribeName(key);
+				if(fm.stringWidth(tribeName) > 200) {
 					boolean stay = true;
 					while(stay) {
 						fontSize--;
-						g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+						g.setFont(new Font("TimesRoman", Font.BOLD,fontSize));
 						fm = g.getFontMetrics();
-						if(fm.stringWidth(idAndTribe.get(key)) < 200)
+						if(fm.stringWidth(tribeName) < 200)
 							stay = false;
 					}
 				}
-				g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
+				g.setFont(new Font("TimesRoman", Font.BOLD, fontSize));
 				g.setPaint(new Color(ColorMap[ranking]));
-				g.drawString(idAndTribe.get(key),width,15+drawY);
+				g.drawString(tribeName, width, 15+drawY);
 				drawY += fm.getHeight();
 				ranking++;
 			}
@@ -155,7 +172,7 @@ public class TopTribes {
 		BufferedImage buffered = new BufferedImage(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), BufferedImage.TYPE_INT_RGB);
 		Graphics2D bimg = buffered.createGraphics();
 		bimg.drawImage(scaledImage, 0, 0, null);
-		File f = new File("W"+world+File.separator+"TopTribes.jpg");
+		File f = new File("W"+world+File.separator+"TopAvgTribes.jpg");
 		try {
 			ImageIO.write(buffered, "JPEG", f);
 		} catch (IOException e) {
@@ -163,27 +180,33 @@ public class TopTribes {
 		}
 	}
 	
-	public static Map<String,String> getTopFifteen() {
-		Map<String,String> output = new LinkedHashMap<String,String>();
-		for(int i=1;i<=15;i++) {
-			try {
-				BufferedReader br = new BufferedReader(new FileReader("ally.txt"));
-				String input;
-				while((input = br.readLine()) != null) {
-					if(Integer.toString(i).equals(input.split(",")[7])) {
-						output.put(input.split(",")[0], decipherString(input.split(",")[2]));
-					}
+	
+	
+	public Map<String, Double> getTopAvgPointTribes() {
+		Map<String,Double> avgPointsPerTribe = new LinkedHashMap<String,Double>();
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("ally.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				
+				double members = Double.parseDouble(input.split(",")[3]);
+				double points = Double.parseDouble(input.split(",")[5]);
+				if(points != 0 || members != 0) {
+					avgPointsPerTribe.put(input.split(",")[0], (points/members));
+				}else {
+					System.out.println(input);
 				}
-				br.close();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
+				
 			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-		return output;	
+		return sortByComparator(avgPointsPerTribe);
 	}
-
+	
 	public static List<String> getTribeVillages(String tribeId) {
 		List<String> playerId = new ArrayList<String>();
 		try {
@@ -219,7 +242,26 @@ public class TopTribes {
 		return output;
 	}
 	
-	
+	public static String getTribeName(String tribeId) {
+		String output = null;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("ally.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				if(tribeId.equals(input.split(",")[0])) {
+					output = input.split(",")[2];
+					break;
+				}
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return decipherString(output);
+	}
 	
 	public static String decipherString(String input) {
 		input = input.replaceAll("\\%20", " ");
@@ -237,12 +279,33 @@ public class TopTribes {
 //		input.replaceAll("", "");
 		return input;
 	}
+	
+	
+	private static Map<String,Double> sortByComparator(Map<String,Double> unsortMap) {
+		List<Entry<String,Double>> list = new LinkedList<Entry<String,Double>>(unsortMap.entrySet());
+		Collections.sort(list, new Comparator<Entry<String, Double>>()
+        {
+
+			@Override
+			public int compare(Entry<String, Double> o1,
+					Entry<String, Double> o2) {
+				return o2.getValue().compareTo(o1.getValue());
+			}
+
+        });
+		Map<String,Double> sortedMap = new LinkedHashMap<String,Double>();
+		for(Entry<String,Double> entry: list) {
+			sortedMap.put(entry.getKey(), entry.getValue());
+		}
+		return sortedMap;
+	}
+	
 
 	public static void main(String[] args) {
 		new Download(78);
-		TopTribes tt = new TopTribes(78);
-		tt.createMap();
-
+		TopAvgTribes tat = new TopAvgTribes(78);
+		tat.createMap();
+		
 	}
 
 }

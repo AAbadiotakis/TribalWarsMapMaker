@@ -17,6 +17,7 @@ public class Download {
 		downloadFile("https://en"+world+".tribalwars.net/map/player.txt", "player.txt");
 		downloadFile("https://en"+world+".tribalwars.net/map/village.txt", "village.txt");
 		downloadFile("https://en"+world+".tribalwars.net/map/ally.txt", "ally.txt");
+		downloadFile("https://en"+world+".tribalwars.net/map/conquer.txt","conquer.txt");
 	}
 	
 	
