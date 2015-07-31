@@ -29,10 +29,10 @@ import com.elvensmite.Download;
 import com.elvensmite.StartScript;
 
 public class TopAvgTribes {
-	static int world;
+	static String world;
 	static int[] ColorMap;
 	
-	public TopAvgTribes(int input) {
+	public TopAvgTribes(String input) {
 		world = input;
 		ColorMap = StartScript.ColorMap;
 	}
@@ -40,36 +40,11 @@ public class TopAvgTribes {
 	public void createMap() {
 		Map<String,Double> avgPointsPerTribe = getTopAvgPointTribes();
 		
-		int lowestX = 1000;
-		int lowestY = 1000;
-		int highestX = 0;
-		int highestY = 0;
+		int lowestX = findLowestX();
+		int lowestY = findLowestY();
+		int highestX = findHighestX();
+		int highestY = findHighestY();
 		int ranking = 0;
-		
-		for(String key: avgPointsPerTribe.keySet()) {
-			if(ranking < ColorMap.length) {
-				List<String> villageCoords = getTribeVillages(key);
-				for(String villageCoord: villageCoords) {
-					int xCoord = Integer.parseInt(villageCoord.split("\\|")[0]);
-					int yCoord = Integer.parseInt(villageCoord.split("\\|")[1]);
-					int xTmp = xCoord;
-					int yTmp = yCoord;
-					while(xTmp > 9)
-						xTmp = xTmp/10;
-					while(yTmp > 9)
-						yTmp = yTmp/10;
-					if(lowestX > xTmp)
-						lowestX = xTmp;
-					if(lowestY > yTmp)
-						lowestY = yTmp;
-					if(highestX < xTmp)
-						highestX = xTmp;
-					if(highestY < yTmp)
-						highestY = yTmp;
-				}				
-				ranking++;
-			}
-		}
 		
 		lowestX = lowestX * 100;
 		lowestY = lowestY * 100;
@@ -172,7 +147,7 @@ public class TopAvgTribes {
 		BufferedImage buffered = new BufferedImage(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), BufferedImage.TYPE_INT_RGB);
 		Graphics2D bimg = buffered.createGraphics();
 		bimg.drawImage(scaledImage, 0, 0, null);
-		File f = new File("W"+world+File.separator+"TopAvgTribes.jpg");
+		File f = new File(world+File.separator+"TopAvgTribes.jpg");
 		try {
 			ImageIO.write(buffered, "JPEG", f);
 		} catch (IOException e) {
@@ -194,7 +169,7 @@ public class TopAvgTribes {
 				if(points != 0 || members != 0) {
 					avgPointsPerTribe.put(input.split(",")[0], (points/members));
 				}else {
-					System.out.println(input);
+					
 				}
 				
 			}
@@ -280,6 +255,95 @@ public class TopAvgTribes {
 		return input;
 	}
 	
+	public static int findLowestX() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x < output)
+						output = x;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findLowestY() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y < output)
+						output = y;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findHighestX() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x > output)
+						output = x;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findHighestY() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y > output)
+						output = y;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int getTotalVillagesInContinent(int continent) {
+		int y = continent/10;
+		int x = continent%10;
+		int output = 0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("village.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				int xCoord = Integer.parseInt(input.split(",")[2]);
+				int yCoord = Integer.parseInt(input.split(",")[3]);
+				while(xCoord > 10) {
+					xCoord = xCoord/10;
+				}
+				while(yCoord > 10) {
+					yCoord = yCoord/10;
+				}
+				if(xCoord == x && yCoord == y) {
+					output++;
+				}
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return output;
+	}
+	
 	
 	private static Map<String,Double> sortByComparator(Map<String,Double> unsortMap) {
 		List<Entry<String,Double>> list = new LinkedList<Entry<String,Double>>(unsortMap.entrySet());
@@ -302,9 +366,9 @@ public class TopAvgTribes {
 	
 
 	public static void main(String[] args) {
-		new Download(78);
-		TopAvgTribes tat = new TopAvgTribes(78);
-		tat.createMap();
+//		new Download(78);
+//		TopAvgTribes tat = new TopAvgTribes(78);
+//		tat.createMap();
 		
 	}
 

@@ -27,10 +27,10 @@ import com.elvensmite.Download;
 import com.elvensmite.StartScript;
 
 public class PlayerDominance {
-	int world;
+	String world;
 	int[] ColorMap;
 	
-	public PlayerDominance(int input) {
+	public PlayerDominance(String input) {
 		world = input;
 		ColorMap = StartScript.ColorMap;
 	}
@@ -228,29 +228,11 @@ public class PlayerDominance {
 	}
 	*/
 	public void createMap() {
-		int lowestX = 1000;
-		int lowestY = 1000;
-		int highestX = 0;
-		int highestY = 0;
-		
-		for(int i = 11; i < 99; i++) {
-			if(getTotalVillagesInContinent(i) > 0) {
-				int y = i/10;
-				int x = i%10;
-				if(x < lowestX)
-					lowestX = x;
-				if(y < lowestY)
-					lowestY = y;
-				if(x > highestX)
-					highestX = x;
-				if( y > highestY)
-					highestY = y;
-			}
-		}
-
-		highestX -= 1;
-		highestY -= 1;
-		
+		int lowestX = findLowestX();
+		int lowestY = findLowestY();
+		int highestX = findHighestX();
+		int highestY = findHighestY();
+			
 		int width = ((highestX * 100) + 100) - (lowestX*100);
 		int height = ((highestY * 100) + 100) - (lowestY*100);
 
@@ -393,7 +375,7 @@ public class PlayerDominance {
 		bimg.drawImage(scaledImage, 0, 0, null);
 		g.dispose();
 		
-		File f = new File("w"+world+File.separator+"PlayerDominance.jpg");
+		File f = new File(world+File.separator+"PlayerDominance.jpg");
 		try {
 			ImageIO.write(buffered, "JPEG", f);
 		} catch (IOException e) {
@@ -591,13 +573,70 @@ public class PlayerDominance {
 		return matches;
 	}
 	
+	public static int findLowestX() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x < output)
+						output = x;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findLowestY() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y < output)
+						output = y;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findHighestX() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x > output)
+						output = x;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findHighestY() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y > output)
+						output = y;
+				}
+			}
+		}
+		return output;
+	}
+	
 	public static int getTotalVillagesInContinent(int continent) {
-		int y = continent;
+		int y = continent/10;
 		int x = continent%10;
 		int output = 0;
-		while (y > 10) {
-			y= y/10;
-		}
 		try {
 			BufferedReader br = new BufferedReader(new FileReader("village.txt"));
 			String input;
@@ -644,6 +683,8 @@ public class PlayerDominance {
 		});
 		Map<String,Long> output = new LinkedHashMap<String,Long>();
 		for(int i=0;i<15;i++) {
+			if(values.size() <= i)
+				break;
 			for(String key: map.keySet()) {
 				if((values.get(i)).equals(map.get(key))) {
 					output.put(key,map.get(key));
@@ -711,12 +752,12 @@ public class PlayerDominance {
 //		PlayerDominance pcp = new PlayerDominance(80);
 //		System.out.println(pcp.grabContinentPlayerData());
 //		pcp.createMap();
-		new Download(78);
+//		new Download(78);
 //		System.out.println(getTotalVillagesInContinent(45));
 //		new Download(78);
 //		System.out.println(""+findTopContinentPlayers());
 //		System.out.println(""+findTopContinentPlayer(5,3));
-		PlayerDominance pd = new PlayerDominance(78);
-		pd.createMap();
+//		PlayerDominance pd = new PlayerDominance(78);
+//		pd.createMap();
 	}
 }

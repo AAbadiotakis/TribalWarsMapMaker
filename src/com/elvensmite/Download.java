@@ -2,6 +2,7 @@ package com.elvensmite;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,11 +14,17 @@ import javax.net.ssl.HttpsURLConnection;
 
 public class Download {
 	
-	public Download(int world) {
-		downloadFile("https://en"+world+".tribalwars.net/map/player.txt", "player.txt");
-		downloadFile("https://en"+world+".tribalwars.net/map/village.txt", "village.txt");
-		downloadFile("https://en"+world+".tribalwars.net/map/ally.txt", "ally.txt");
-		downloadFile("https://en"+world+".tribalwars.net/map/conquer.txt","conquer.txt");
+	public Download(String world, String url) {
+		File theDir = new File(world);
+		if(!theDir.exists()) {
+			theDir.mkdir();
+		}
+		downloadFile("https://"+world+"."+url+"/map/player.txt", "player.txt");
+		downloadFile("https://"+world+"."+url+"/map/village.txt", "village.txt");
+		downloadFile("https://"+world+"."+url+"/map/ally.txt", "ally.txt");
+		downloadFile("https://"+world+"."+url+"/map/conquer.txt","conquer.txt");
+		downloadFile("https://"+world+"."+url+"/map/kill_att.txt","kill_att.txt");
+		downloadFile("https://"+world+"."+url+"/map/kill_all.txt","kill_all.txt");
 	}
 	
 	
@@ -52,10 +59,6 @@ public class Download {
 			}
 		}
 	}
-	
 
-	public static void main(String[] args) {
-		
-	}
 
 }

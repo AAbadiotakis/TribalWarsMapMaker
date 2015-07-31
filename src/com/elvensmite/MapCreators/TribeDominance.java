@@ -32,10 +32,10 @@ import com.elvensmite.Download;
 import com.elvensmite.StartScript;
 
 public class TribeDominance {
-	int world;
+	String world;
 	int[] ColorMap;
 	
-	public TribeDominance(int input) {
+	public TribeDominance(String input) {
 		world = input;
 		ColorMap = StartScript.ColorMap;
 	}
@@ -313,7 +313,7 @@ public class TribeDominance {
 			for(int y = lowestY;y<highestY;y++) {
 				Map<String,Long> continentTribe = findTopContinentTribe(x,y);
 				if(continentTribe.isEmpty()) {
-					System.out.println("isEmpty");
+					
 				} else {
 					for(String key: continentTribe.keySet()) {
 						int yCoord = (y * 100) - (lowestY * 100);
@@ -413,7 +413,7 @@ public class TribeDominance {
 		bimg.drawImage(scaledImage, 0, 0, null);
 		g.dispose();
 		
-		File f = new File("w"+world+File.separator+"TribeDominance.jpg");
+		File f = new File(world+File.separator+"TribeDominance.jpg");
 		try {
 			ImageIO.write(buffered, "JPEG", f);
 		} catch (IOException e) {
@@ -580,6 +580,7 @@ public class TribeDominance {
 	}
 	
 	public static String decipherString(String input) {
+		System.out.println(input);
 		input = input.replaceAll("\\%20", " ");
 		input = input.replaceAll("\\%21","!");
 		input = input.replaceAll("\\%22","\"");
@@ -912,7 +913,7 @@ public class TribeDominance {
 				if(x == xCoord && y == yCoord) {
 					String playerId = input.split(",")[4];
 					String tribeId = findPlayerTribeId(playerId);
-					if(tribeId != null) {
+					if(tribeId != null && (!tribeId.equals("0"))) {
 						if(map.containsKey(tribeId)) {
 							long tmp = map.get(tribeId);
 							tmp += 1;
@@ -952,10 +953,10 @@ public class TribeDominance {
 	
 	
 	public static void main(String[] args) {
-		new Download(81);
-		TribeDominance td = new TribeDominance(81);
+//		new Download(78);
+//		TribeDominance td = new TribeDominance(78);
 //		System.out.println(""+findTopContinentTribe(5,5));
-		td.createMap();
+//		td.createMap();
 //		System.out.println("Top Tribe: "+findTopContinentTribe(5,3));
 //		System.out.println("Top Tribes: "+findTopContinentTribes());
 //		Map<String, List<String>> td1 = td.grabContinentTribeData();

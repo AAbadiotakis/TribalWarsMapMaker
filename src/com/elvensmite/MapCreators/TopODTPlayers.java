@@ -8,6 +8,7 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,13 +24,14 @@ import java.util.Map;
 import javax.imageio.ImageIO;
 import javax.net.ssl.HttpsURLConnection;
 
+import com.elvensmite.Download;
 import com.elvensmite.StartScript;
 
 public class TopODTPlayers {
-	static int world;
+	static String world;
 	static int[] ColorMap;
 	
-	public TopODTPlayers(int input) {
+	public TopODTPlayers(String input) {
 		world = input;
 		ColorMap = StartScript.ColorMap;
 	}
@@ -163,14 +165,14 @@ public class TopODTPlayers {
 		BufferedImage buffered = new BufferedImage(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), BufferedImage.TYPE_INT_RGB);
 		Graphics2D bimg = buffered.createGraphics();
 		bimg.drawImage(scaledImage, 0, 0, null);
-		File f = new File("W"+world+File.separator+"TopODTPlayers.jpg");
+		File f = new File(world+File.separator+"TopODTPlayers.jpg");
 		try {
 			ImageIO.write(buffered, "JPEG", f);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-	
+/*	
 	public static Map<String,String> getTopFifteen() {
 		Map<String,String> output = new LinkedHashMap<String,String>();
 		String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking&mode=kill_player&type=all";
@@ -213,6 +215,67 @@ public class TopODTPlayers {
 		}
 		return output;
 	}
+*/	
+
+	public static Map<String,String> getTopFifteen() {
+		Map<String,String> output = new LinkedHashMap<String,String>();
+		for(int i = 1;i<=15;i++) {
+			try {
+				BufferedReader br = new BufferedReader(new FileReader("kill_all.txt"));
+				String input;
+				while((input = br.readLine()) != null) {
+					if(Integer.toString(i).equals(input.split(",")[0])) {
+						String playerName = decipherString(getPlayerName(input.split(",")[1]));
+						output.put(input.split(",")[1], playerName);
+					}
+				}
+				br.close();
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return output;
+	}
+	
+	public static String decipherString(String input) {
+		input = input.replaceAll("\\%20", " ");
+		input = input.replaceAll("\\%21","!");
+		input = input.replaceAll("\\%22","\"");
+		input = input.replaceAll("\\%23", "#");
+		input = input.replaceAll("\\%24", "$");
+		input = input.replaceAll("\\%25", "%");
+		input = input.replaceAll("\\%26", "&");
+		input = input.replaceAll("\\%27","'");
+		input = input.replaceAll("\\%28","(");
+		input = input.replaceAll("\\%29", ")");
+		input = input.replaceAll("\\+", " ");
+		input = input.replaceAll("\\%7E","~");
+//		input.replaceAll("", "");
+		return input;
+	}
+	
+	public static String getPlayerName(String playerId) {
+		String output = null;
+		
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("player.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				if(playerId.equals(input.split(",")[0]))
+					output = input.split(",")[1];
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return output;
+	}
+	
 	
 	public static List<String> getPlayerVillages(String id) {
 		List<String> output = new ArrayList<String>();
@@ -233,7 +296,7 @@ public class TopODTPlayers {
 	
 
 	public static void main(String[] args) {
-		TopODTPlayers odtp = new TopODTPlayers(79);
+		TopODTPlayers odtp = new TopODTPlayers("79");
 		odtp.createMap();
 	}
 

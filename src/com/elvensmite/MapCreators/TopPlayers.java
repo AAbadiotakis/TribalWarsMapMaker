@@ -24,10 +24,10 @@ import com.elvensmite.Download;
 import com.elvensmite.StartScript;
 
 public class TopPlayers {
-	static int world;
+	static String world;
 	static int[] ColorMap;
 	
-	public TopPlayers(int input) {
+	public TopPlayers(String input) {
 		world = input;
 		ColorMap = StartScript.ColorMap;
 	}
@@ -155,7 +155,7 @@ public class TopPlayers {
 		BufferedImage buffered = new BufferedImage(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), BufferedImage.TYPE_INT_RGB);
 		Graphics2D bimg = buffered.createGraphics();
 		bimg.drawImage(scaledImage, 0, 0, null);
-		File f = new File("W"+world+File.separator+"TopPlayers.jpg");
+		File f = new File(world+File.separator+"TopPlayers.jpg");
 		try {
 			ImageIO.write(buffered, "JPEG", f);
 		} catch (IOException e) {
@@ -222,9 +222,9 @@ public class TopPlayers {
 
 	public static void main(String[] args) {
 		int world = 78;
-		new Download(world);
-		TopPlayers tp = new TopPlayers(world);
-		tp.createMap();
+//		new Download(world);
+//		TopPlayers tp = new TopPlayers(world);
+//		tp.createMap();
 	}
 
 }
