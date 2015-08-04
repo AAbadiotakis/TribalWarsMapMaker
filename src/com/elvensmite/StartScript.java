@@ -50,12 +50,18 @@ public class StartScript {
 	
 	
 	public static void main(String[] args) {
-//		new StartScript("sv28","tribalwars.se");
-//		new FtpFileUpload("sv28");
-		new StartScript("en81","tribalwars.net");
-		new FtpFileUpload("en81");
-//		new StartScript("ts5","tribalwarsmasters.net");
-//		new FtpFileUpload("ts5");
+//		new StartScript("en78","tribalwars.net");
+//		new FtpFileUpload("en78");
+//		new StartScript("en81","tribalwars.net");
+//		new FtpFileUpload("en81");
+		new StartScript("ts5","tribalwarsmasters.net");
+		new FtpFileUpload("ts5");
+		new StartScript("sv30","tribalwars.se");
+		new FtpFileUpload("sv30");
+		new StartScript("sv29","tribalwars.se");
+		new FtpFileUpload("sv29");
+		new StartScript("sv28","tribalwars.se");
+		new FtpFileUpload("sv28");
 //		new StartScript(78);
 //		new FtpFileUpload(78);
 //		new StartScript(79);

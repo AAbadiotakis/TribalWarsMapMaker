@@ -38,31 +38,11 @@ public class TopODTPlayers {
 	
 	public void createMap() {
 		Map<String,String> idAndPlayer = getTopFifteen();
-		int lowestX = 1000;
-		int lowestY = 1000;
-		int highestX = 0;
-		int highestY = 0;
-		for(String key: idAndPlayer.keySet()) {
-			List<String> villageCoords = getPlayerVillages(key);
-			for(String villageCoord: villageCoords) {
-				int xCoord = Integer.parseInt(villageCoord.split("\\|")[0]);
-				int yCoord = Integer.parseInt(villageCoord.split("\\|")[1]);
-				int xTmp = xCoord;
-				int yTmp = yCoord;
-				while(xTmp > 9)
-					xTmp = xTmp/10;
-				while(yTmp > 9)
-					yTmp = yTmp/10;
-				if(lowestX > xTmp)
-					lowestX = xTmp;
-				if(lowestY > yTmp)
-					lowestY = yTmp;
-				if(highestX < xTmp)
-					highestX = xTmp;
-				if(highestY < yTmp)
-					highestY = yTmp;
-			}
-		}
+		int lowestX = findLowestX();
+		int lowestY = findLowestY();
+		int highestX = findHighestX();
+		int highestY = findHighestY();
+		
 		lowestX = lowestX * 100;
 		lowestY = lowestY * 100;
 		highestX = (highestX * 100)+100;
@@ -172,50 +152,6 @@ public class TopODTPlayers {
 			e.printStackTrace();
 		}
 	}
-/*	
-	public static Map<String,String> getTopFifteen() {
-		Map<String,String> output = new LinkedHashMap<String,String>();
-		String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking&mode=kill_player&type=all";
-		URL url;
-		HttpsURLConnection con = null;
-		try {
-			url = new URL(https_url);
-			con = (HttpsURLConnection)url.openConnection();
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			
-		}
-
-		if(con != null) {
-			try {
-				BufferedReader br = 
-						new BufferedReader(
-							new InputStreamReader(con.getInputStream()));
-				String input;
-				String id = null;
-				boolean foundId = false;;
-				while((input = br.readLine()) != null) {
-					if(input.matches("\\s*<a class=\"\" href=\"/guest\\.php\\?screen=info_player&amp;id=[0-9]*\">")) {
-						id = (input.split("id=")[1]).split("\">")[0];
-						foundId = true;
-					}else if(foundId) {
-						if(input.contains("<") || input.contains(">")) {
-							
-						}else {
-							foundId = false;
-							output.put(id, input.trim());
-						}
-					}
-				}
-				
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-		return output;
-	}
-*/	
 
 	public static Map<String,String> getTopFifteen() {
 		Map<String,String> output = new LinkedHashMap<String,String>();
@@ -248,10 +184,116 @@ public class TopODTPlayers {
 		input = input.replaceAll("\\%27","'");
 		input = input.replaceAll("\\%28","(");
 		input = input.replaceAll("\\%29", ")");
+		input = input.replaceAll("\\%2A", "*");
+		input = input.replaceAll("\\%2B", "+");
+		input = input.replaceAll("\\%2C", ",");
+		input = input.replaceAll("\\%2D", "-");
+		input = input.replaceAll("\\%2E", ".");
+		input = input.replaceAll("\\%2F", "/");
+		input = input.replaceAll("\\%5B", "[");
+		input = input.replaceAll("\\%5C", "\\");
+		input = input.replaceAll("\\%5D", "]");
+		input = input.replaceAll("\\%5E", "^");
+		input = input.replaceAll("\\%5F", "_");
+		input = input.replaceAll("\\%60", "`");
+		input = input.replaceAll("\\%7B", "{");
+		input = input.replaceAll("\\%7C", "|");
+		input = input.replaceAll("\\%7D", "}");
+		input = input.replaceAll("\\%7E", "~");
 		input = input.replaceAll("\\+", " ");
+		
 		input = input.replaceAll("\\%7E","~");
 //		input.replaceAll("", "");
 		return input;
+	}
+	
+	public static int findLowestX() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x < output)
+						output = x;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findLowestY() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y < output)
+						output = y;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findHighestX() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x > output)
+						output = x;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findHighestY() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y > output)
+						output = y;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int getTotalVillagesInContinent(int continent) {
+		int y = continent/10;
+		int x = continent%10;
+		int output = 0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("village.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				int xCoord = Integer.parseInt(input.split(",")[2]);
+				int yCoord = Integer.parseInt(input.split(",")[3]);
+				while(xCoord > 10) {
+					xCoord = xCoord/10;
+				}
+				while(yCoord > 10) {
+					yCoord = yCoord/10;
+				}
+				if(xCoord == x && yCoord == y) {
+					output++;
+				}
+			}
+			br.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return output;
 	}
 	
 	public static String getPlayerName(String playerId) {

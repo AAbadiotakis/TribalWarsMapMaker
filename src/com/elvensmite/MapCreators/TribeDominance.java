@@ -39,205 +39,7 @@ public class TribeDominance {
 		world = input;
 		ColorMap = StartScript.ColorMap;
 	}
-	/*
-	public void createMap() {
-		Map<String, List<String>> continentTribeData = grabContinentTribeData();
-		Map<String, String> TopFifteen = getTopFifteenTribeDom(continentTribeData);
-		
-		int lowestX = 1000;
-		int lowestY = 1000;
-		int highestX = 0;
-		int highestY = 0;
-		
-		for(String key: continentTribeData.keySet()) {
-			List<String> list = continentTribeData.get(key);
-			String tribeId = list.get(0);
-			List<String> villageCoords = getTribeVillages(tribeId);
-			for(String villageCoord: villageCoords) {
-				int xCoord = Integer.parseInt((villageCoord.split("\\|")[0]));
-				int yCoord = Integer.parseInt((villageCoord.split("\\|")[1]));
-				int xTmp = xCoord;
-				int yTmp = yCoord;
-				while(xTmp > 9)
-					xTmp = xTmp/10;
-				while(yTmp > 9)
-					yTmp = yTmp/10;
-				if(lowestX > xTmp)
-					lowestX = xTmp;
-				if(lowestY > yTmp)
-					lowestY = yTmp;
-				if(highestX < xTmp)
-					highestX = xTmp;
-				if(highestY < yTmp)
-					highestY = yTmp;
-			}
-		}
-		
-		lowestX = lowestX*100;
-		lowestY = lowestY*100;
-		
-		highestX = (highestX*100) + 100;
-		highestY = (highestY*100) + 100;
-		
-		int width = highestX - lowestX;
-		int height = highestY - lowestY;
-		
-		BufferedImage img = new BufferedImage(width,height, BufferedImage.TYPE_INT_RGB);
-		Graphics2D graphics = img.createGraphics();
-		graphics.setPaint(new Color(72,71,82));
-		graphics.fillRect(0, 0, img.getWidth(), img.getHeight());
-		int ranking = 0;
-		int drawY = 50;
-		
-		for(String key: TopFifteen.keySet()) {
-			if(ranking < ColorMap.length) {
-				List<String> l = getTribeVillages(TopFifteen.get(key));
-				for(String str: l) {
-					int xCoord = Integer.parseInt((str.split("\\|")[0]));
-					int yCoord = Integer.parseInt((str.split("\\|")[1]));
-					xCoord -= lowestX;
-					yCoord -= lowestY;
-					graphics.setColor(new Color(ColorMap[ranking]));
-					graphics.fillRect(xCoord-2, yCoord-2, 4, 4);
-					graphics.setColor(Color.BLACK);
-					graphics.drawRect(xCoord-3, yCoord-3, 5, 5);
-				}
-				ranking++;
-			}
-		}
-		
-		//Print Continent numbers
-		for(int x=0;x<width;x++) {
-			for(int y=0;y<height;y++) {
-				if(x%100 == 0)
-					img.setRGB(x, y, Color.BLACK.getRGB());
-				if(y%100 == 0)
-					img.setRGB(x, y, Color.BLACK.getRGB());
-				if(x%100 == 0 && y%100 == 0 && x != highestX && y != highestY) {
-					graphics.setFont(new Font("Dialog", Font.BOLD, 16));
-					graphics.setColor(new Color(Color.BLACK.getRGB()));
-					FontMetrics fm = graphics.getFontMetrics();
-//					graphics.setPaint(new Color(255,255,255));
-					graphics.drawString(""+(y+lowestY)/100+(x+lowestX)/100, x, y+fm.getHeight());
-				}
-			}
-		}
-		
-		//Print tribe name per K
-		//Print % Tribe Owned/total K
-		for(String key: continentTribeData.keySet()) {
-			String x = ""+key.charAt(1);
-			String y = ""+key.charAt(0);
-			
-			int xCoord = Integer.parseInt(x);
-			int yCoord = Integer.parseInt(y);
-			
-			xCoord = xCoord*100;
-			yCoord = yCoord*100;
-			
-			xCoord -= lowestX;
-			yCoord -= lowestY;
-			
-			if(continentTribeData.containsKey(key)) {
-				List<String> l = continentTribeData.get(key);
-				String tribe = l.get(1);
-				String f = l.get(2);
-				float f1 = Float.parseFloat(f);
-				f1 = f1*100;
-				f = String.format("%.2f", f1);
-				f += "%";
-				int fontSize = 12;
-				graphics.setFont(new Font("Dialog",Font.BOLD, fontSize));
-				FontMetrics fm = graphics.getFontMetrics();
-				if(fm.stringWidth(tribe) > 200) {
-					boolean stay = true;
-					while(stay) {
-						fontSize--;
-						graphics.setFont(new Font("Dialog",Font.BOLD,fontSize));
-						fm = graphics.getFontMetrics();
-						if(fm.stringWidth(tribe) < 200)
-							stay = false;
-					}
-				}
-				graphics.setFont(new Font("Dialog",Font.BOLD,fontSize));
-				graphics.setPaint(new Color(0,0,0));
-				fm = graphics.getFontMetrics();
-				int moveX = fm.stringWidth(tribe);
-				graphics.drawString(tribe, xCoord+((100-moveX)/2), yCoord+50);
-				graphics.setFont(new Font("Dialog",Font.BOLD,12));
-				moveX = fm.stringWidth(f);
-				graphics.drawString(f,xCoord+((100-moveX)/2),yCoord+75);	
-			}
-		}
-		
-		ranking = 0;
-		graphics.dispose();
-		BufferedImage fullImage = new BufferedImage(width+200,height+30,BufferedImage.TYPE_INT_RGB);
-		Graphics2D g = fullImage.createGraphics();
-		g.drawImage(img, 0, 30, width, height+30, 0, 0, img.getWidth(), img.getHeight(), null);
-		String header = "Tribe Dominance";
-		g.setFont(new Font("TimesRoman",Font.BOLD,21));
-		FontMetrics fm = g.getFontMetrics();
-		g.drawString(header, (width/2)-((fm.stringWidth(header))/2), fm.getHeight());
-		g.setFont(new Font("Dialog", Font.BOLD, 14));
-		fm = graphics.getFontMetrics();
-		drawY = fm.getHeight();
-		int fontSize = 20;
-		boolean isTrue = true;
-		while(isTrue) {
-			g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
-			fm = g.getFontMetrics();
-			if(height - 15*fm.getHeight() > 20) {
-				isTrue = false;
-			}else {
-				fontSize--;
-			}
-		}
-		int resetFont = fontSize;
-		//Print Tribe key
-		for(String key: TopFifteen.keySet()) {
-			if(ranking < ColorMap.length) {
-				fontSize = resetFont;
-				g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
-				fm = g.getFontMetrics();
-				if(fm.stringWidth(key) > 200) {
-					boolean stay = true;
-					while(stay) {
-						fontSize--;
-						g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
-						fm = g.getFontMetrics();
-						if(fm.stringWidth(key) <= 200)
-							stay = false;
-					}
-				}
-				g.setFont(new Font("TimesRoman",Font.BOLD,fontSize));
-				g.setPaint(new Color(ColorMap[ranking]));
-				g.drawString(key, width, 15+drawY);
-				drawY+= fm.getHeight();
-				ranking++;
-			}
-		}
-		SimpleDateFormat sdf = new SimpleDateFormat("HH:mm dd/MM/yyyy 'EST'");
-		String d = sdf.format(new Date());
-		g.setFont(new Font("TimesRoman",Font.BOLD,10));
-		g.setColor(Color.WHITE);
-		fm = g.getFontMetrics();
-		g.drawString(d,width,(height+30)-fm.getHeight());
-		g.dispose();
-		Image scaledImage = fullImage.getScaledInstance(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), Image.SCALE_SMOOTH);		
-		BufferedImage buffered = new BufferedImage(750, (int) (fullImage.getHeight()*(750.00/fullImage.getWidth())), BufferedImage.TYPE_INT_RGB);
-		Graphics2D bimg = buffered.createGraphics();
-		bimg.drawImage(scaledImage, 0, 0, null);
-		g.dispose();
-		
-		File f = new File("w"+world+File.separator+"TribeDominance.jpg");
-		try {
-			ImageIO.write(buffered, "JPEG", f);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}		
-	}
-	*/
+
 	public void createMap() {
 		
 		int lowestX = 1000;
@@ -420,110 +222,8 @@ public class TribeDominance {
 			e.printStackTrace();
 		}
 		
-		
-		
-		
 	}
 	
-	
-	
-	public Map<String,List<String>> grabContinentTribeData() {
-		Map<String,List<String>> output = new LinkedHashMap<String,List<String>>();
-		for(int continent=0;continent<99;continent++) {
-				int totalVillages = getTotalVillagesInContinent(continent);
-				String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=ranking&mode=con_ally&con="+continent;
-				URL url;
-				HttpsURLConnection con = null;
-				try {
-					url = new URL(https_url);
-					con = (HttpsURLConnection)url.openConnection();
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					
-				}
-				
-				if (con != null) {
-					try {
-						BufferedReader br = 
-								new BufferedReader(
-									new InputStreamReader(con.getInputStream()));
-						String input;
-						String id = null;
-						List<String> l = new ArrayList<String>();
-						boolean foundId = false;
-						boolean findVillageCount = false;
-						boolean findVillageCount1 = false;
-						boolean firstRanking = true;
-						boolean secondRanking = false;
-						while((input = br.readLine()) != null) {
-							if(firstRanking) {
-								if(input.matches("\\s*<a href=\"/guest\\.php\\?screen=info_ally&amp;id=[0-9]*\">")) {
-									id = (input.split("id=")[1]).split("\">")[0];
-									l.add(id);
-									foundId = true;
-								}else if(foundId) {
-									if(input.contains("<") || input.contains(">")) {
-
-									}else {
-										foundId = false;
-										findVillageCount = true;
-										l.add(input.trim());
-									}
-								}else if(findVillageCount) {
-									if(input.matches("\\s*<td class=\"lit-item\">.*</td>")) {
-										// This should be the total points of the tribe
-										findVillageCount = false;
-										findVillageCount1 = true;
-									}
-								}else if(findVillageCount1) {
-									if(input.matches("\\s*<td class=\"lit-item\">(\\d+\\.?)*\\d+</td>")) {
-										String tmp = (input.split("<td class=\"lit-item\">")[1]).split("</td>")[0];
-										tmp = tmp.replaceAll("\\.", "");
-										float percentDom = (float) Float.parseFloat(tmp)/totalVillages;
-										l.add(""+percentDom);
-										output.put(""+continent, l);
-										firstRanking = false;
-										secondRanking = true;
-										findVillageCount = false;
-										findVillageCount1 = false;
-									}
-								}
-							}else if(secondRanking) {
-								if(input.matches("\\s*<a href=\"/guest\\.php\\?screen=info_ally&amp;id=[0-9]*\">")) {
-									id = (input.split("id=")[1]).split("\">")[0];
-									l.add(id);
-									foundId = true;
-								}else if(foundId) {
-									if(input.contains("<") || input.contains(">")) {
-
-									}else {
-										foundId = false;
-										findVillageCount = true;
-										l.add(input.trim());
-									}
-								}else if(findVillageCount) {
-									if(input.matches("\\s*<td class=\"lit-item\">(\\d+\\.?)*\\d+</td>")) {
-										String tmp = (input.split("<td class=\"lit-item\">")[1]).split("</td>")[0];
-										float percentDom = (float) Float.parseFloat(tmp)/totalVillages;
-										l.add(""+percentDom);
-										output.put(""+continent, l);
-										firstRanking = false;
-										secondRanking = false;
-										findVillageCount = false;
-									}
-								}
-							}
-							
-						}
-						
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-		}
-		return output;
-	}
 	
 	public Map<String,String> getTopFifteenTribeDom(Map<String,List<String>> m) {
 		Map<String,String> output = new LinkedHashMap<String,String>();
@@ -580,7 +280,6 @@ public class TribeDominance {
 	}
 	
 	public static String decipherString(String input) {
-		System.out.println(input);
 		input = input.replaceAll("\\%20", " ");
 		input = input.replaceAll("\\%21","!");
 		input = input.replaceAll("\\%22","\"");
@@ -591,92 +290,93 @@ public class TribeDominance {
 		input = input.replaceAll("\\%27","'");
 		input = input.replaceAll("\\%28","(");
 		input = input.replaceAll("\\%29", ")");
+		input = input.replaceAll("\\%2A", "*");
+		input = input.replaceAll("\\%2B", "+");
+		input = input.replaceAll("\\%2C", ",");
+		input = input.replaceAll("\\%2D", "-");
+		input = input.replaceAll("\\%2E", ".");
+		input = input.replaceAll("\\%2F", "/");
+		input = input.replaceAll("\\%5B", "[");
+		input = input.replaceAll("\\%5C", "\\");
+		input = input.replaceAll("\\%5D", "]");
+		input = input.replaceAll("\\%5E", "^");
+		input = input.replaceAll("\\%5F", "_");
+		input = input.replaceAll("\\%60", "`");
+		input = input.replaceAll("\\%7B", "{");
+		input = input.replaceAll("\\%7C", "|");
+		input = input.replaceAll("\\%7D", "}");
+		input = input.replaceAll("\\%7E", "~");
 		input = input.replaceAll("\\+", " ");
+		
 		input = input.replaceAll("\\%7E","~");
 //		input.replaceAll("", "");
 		return input;
 	}
 	
-	public Map<String,List<String>> grabPlayerVillageCoords(Map<String,String> m) {
-		Map<String,List<String>> output = new LinkedHashMap<String,List<String>>();
-		for (String key : m.keySet()) {
-			String id = m.get(key);
-			List<String> l = new ArrayList<String>();
-			String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=info_player&ajax=fetch_villages&player_id="+id;
-			URL url;
-			HttpsURLConnection con = null;
-			try {
-				url = new URL(https_url);
-				con = (HttpsURLConnection)url.openConnection();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				
-			}
-			if(con != null) {
-				try {
-					BufferedReader br = 
-							new BufferedReader(
-								new InputStreamReader(con.getInputStream()));
-					String input;
-					while((input = br.readLine()) != null) {
-						l.addAll(getAllMatches(input,"[0-9]{3}\\|[0-9]{3}"));
-					}
-					output.put(key, l);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}	
-			}
-			
-			String https_url2 = "https://en"+world+".tribalwars.net/guest.php?screen=info_player&id="+id;
-			URL url2;
-			HttpsURLConnection con2 = null;
-			try {
-				url2 = new URL(https_url2);
-				con2 = (HttpsURLConnection)url2.openConnection();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			if(con2 != null) {
-				try {
-					BufferedReader br = 
-							new BufferedReader(
-								new InputStreamReader(con2.getInputStream()));
-					String input;
-					while((input = br.readLine()) != null) {
-						if(input.matches("\\s*<td>[0-9]{3}\\|[0-9]{3}</td>")) {
-							l.add((input.split("<td>")[1]).split("</td>")[0]);
-						}
-					}
-					output.put(key, l);
-				} catch (IOException e) {
-					e.printStackTrace();
+	public static int findLowestX() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x < output)
+						output = x;
 				}
 			}
-			
-			
-		}		
+		}
 		return output;
 	}
 	
-	public static List<String> getAllMatches(String text, String regex) {
-		List<String> matches = new ArrayList<String>();
-		Matcher m = Pattern.compile("(?=(" + regex + "))").matcher(text);
-		while(m.find()) {
-			matches.add(m.group(1));
+	public static int findLowestY() {
+		int output = 10;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y < output)
+						output = y;
+				}
+			}
 		}
-		return matches;
+		return output;
+	}
+	
+	public static int findHighestX() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(x > output)
+						output = x;
+				}
+			}
+		}
+		return output;
+	}
+	
+	public static int findHighestY() {
+		int output = 0;
+		for(int x = 0;x < 10;x++) {
+			for(int y = 0;y < 10; y++) {
+				int continent = (y*10) + x;
+				int totalVillages = getTotalVillagesInContinent(continent);
+				if(totalVillages > 0) {
+					if(y > output)
+						output = y;
+				}
+			}
+		}
+		return output;
 	}
 	
 	public static int getTotalVillagesInContinent(int continent) {
-		int y = continent;
+		int y = continent/10;
 		int x = continent%10;
 		int output = 0;
-		while (y > 10) {
-			y= y/10;
-		}
 		try {
 			BufferedReader br = new BufferedReader(new FileReader("village.txt"));
 			String input;
@@ -695,112 +395,22 @@ public class TribeDominance {
 			}
 			br.close();
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		return output;
 	}
-	
-	public Map<String,List<String>> grabTribePlayers(Map<String,String> m) {
 
-		Map<String,List<String>> output = new LinkedHashMap<String,List<String>>();
-		for (String key : m.keySet()) {
-			String id = m.get(key);
-			List<String> l = new ArrayList<String>();
-			List<String> l2 = new ArrayList<String>();
-			String https_url = "https://en"+world+".tribalwars.net/guest.php?screen=info_member&id="+id;
-			URL url;
-			HttpsURLConnection con = null;
-			try {
-				url = new URL(https_url);
-				con = (HttpsURLConnection)url.openConnection();
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				
-			}
-			if(con != null) {
-				try {
-					BufferedReader br = 
-							new BufferedReader(
-								new InputStreamReader(con.getInputStream()));
-					String input;
-					while((input = br.readLine()) != null) {
-						if(input.matches("\\s*<a href=\"/guest\\.php\\?screen=info_player&amp;id=[0-9]*\">.*</a>")) {
-							l.add((input.split("id=")[1]).split("\">")[0]);
-						}
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-			
-			for(String playerId : l) {
-				String https_url2 = "https://en"+world+".tribalwars.net/guest.php?screen=info_player&id="+playerId;
-				URL url2;
-				HttpsURLConnection con2 = null;
-				try {
-					url2 = new URL(https_url2);
-					con2 = (HttpsURLConnection)url2.openConnection();
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
-				if(con2 != null) {
-					try {
-						BufferedReader br2 = 
-								new BufferedReader(
-									new InputStreamReader(con2.getInputStream()));
-						String input;
-						while((input = br2.readLine()) != null) {
-							if(input.matches("\\s*<td>[0-9]{3}\\|[0-9]{3}</td>")) {
-								l2.add((input.split("<td>")[1]).split("</td>")[0]);
-							}
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-				}
-				
-				String https_url3 = "https://en"+world+".tribalwars.net/guest.php?screen=info_player&ajax=fetch_villages&player_id="+id;
-				URL url3;
-				HttpsURLConnection con3 = null;
-				try {
-					url3 = new URL(https_url3);
-					con3 = (HttpsURLConnection)url3.openConnection();
-				} catch (MalformedURLException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					
-				}
-				if(con3 != null) {
-					try {
-						BufferedReader br = 
-								new BufferedReader(
-									new InputStreamReader(con3.getInputStream()));
-						String input;
-						while((input = br.readLine()) != null) {
-							l2.addAll(getAllMatches(input,"[0-9]{3}\\|[0-9]{3}"));
-						}
-						output.put(key, l);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}	
-				}
-				
-				
-			}
-			output.put(key, l2);
-			
+	public static List<String> getAllMatches(String text, String regex) {
+		List<String> matches = new ArrayList<String>();
+		Matcher m = Pattern.compile("(?=(" + regex + "))").matcher(text);
+		while(m.find()) {
+			matches.add(m.group(1));
 		}
-		return output;
+		return matches;
 	}
-	
+
 	public static List<String> getTribeVillages(String tribeId) {
 		List<String> playerId = new ArrayList<String>();
 		try {
@@ -946,10 +556,44 @@ public class TribeDominance {
 				}
 			}
 		}
+		
+		if(output.size() > 1) {
+			int tribeValue = 0;
+			List<String> removeableKeys = new ArrayList<String>();
+			String lastKey = null;
+			for(String key: output.keySet()) {
+				int tmp = getTribePointValue(key);
+				if(tmp > tribeValue) {
+					removeableKeys.add(lastKey);
+					lastKey = key;
+					tmp = tribeValue;
+				}else {
+					removeableKeys.add(key);
+				}
+			}
+		}
+		
 		return output;
 	}
 	
 	
+	
+	public static int getTribePointValue(String tribeId) {
+		int output = 0;
+		try {
+			BufferedReader br = new BufferedReader(new FileReader("ally.txt"));
+			String input;
+			while((input = br.readLine()) != null) {
+				if(input.split(",")[0].equals(tribeId))
+					output = Integer.parseInt(input.split(",")[6]);
+			}
+			br.close();
+		} catch(IOException e) {
+			e.printStackTrace();
+		}
+		
+		return output;
+	}
 	
 	
 	public static void main(String[] args) {

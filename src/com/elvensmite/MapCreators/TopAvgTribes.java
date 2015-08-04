@@ -249,7 +249,24 @@ public class TopAvgTribes {
 		input = input.replaceAll("\\%27","'");
 		input = input.replaceAll("\\%28","(");
 		input = input.replaceAll("\\%29", ")");
+		input = input.replaceAll("\\%2A", "*");
+		input = input.replaceAll("\\%2B", "+");
+		input = input.replaceAll("\\%2C", ",");
+		input = input.replaceAll("\\%2D", "-");
+		input = input.replaceAll("\\%2E", ".");
+		input = input.replaceAll("\\%2F", "/");
+		input = input.replaceAll("\\%5B", "[");
+		input = input.replaceAll("\\%5C", "\\");
+		input = input.replaceAll("\\%5D", "]");
+		input = input.replaceAll("\\%5E", "^");
+		input = input.replaceAll("\\%5F", "_");
+		input = input.replaceAll("\\%60", "`");
+		input = input.replaceAll("\\%7B", "{");
+		input = input.replaceAll("\\%7C", "|");
+		input = input.replaceAll("\\%7D", "}");
+		input = input.replaceAll("\\%7E", "~");
 		input = input.replaceAll("\\+", " ");
+		
 		input = input.replaceAll("\\%7E","~");
 //		input.replaceAll("", "");
 		return input;
